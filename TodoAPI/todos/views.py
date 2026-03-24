@@ -24,8 +24,9 @@ class LoginView(APIView):
         if not user or not user.check_password(password):
             return Response({'error': 'Invalid credentials'},
                             status = status.HTTP_401_UNAUTHORIZED)
-            refresh = RefreshToken.for_user(user)
-            return Response({
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             }, status = status.HTTP_200_OK)
