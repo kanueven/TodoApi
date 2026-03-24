@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import User
 
 #  for the User serializer, we need one for registering and the other for displaying data
-class RegisterSerializer(serializers.ModelSerializers):
+class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only = True, min_length = 6)
     
     class Meta:
