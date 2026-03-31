@@ -1,10 +1,13 @@
-from .models import User
+from .models import User, TodoList, TodoItem
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import RegisterSerializer, UserSerializer, TodoListSerializer,TodoItemSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import viewsets
+from .permissions import IsOwner
+from datetime import datetime
 
 # Create your views here.
 class RegisterView(APIView):
@@ -42,3 +45,27 @@ class ProfileView(APIView):
             serializer.save()
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+    
+class TodoListViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwner]
+    serializer_class = TodoListSerializer
+    def get_queryset(self):
+        return TodoList.objects.filter(
+            owner=self.request.user,
+            # completed = False,
+            # priority = 'high',
+            # due_date__lte = datetime.today()
+            )
+    def perform_create(self,serializer):
+        serializer.save(owner=self.request.user)
+class TodoItemViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated, IsOwner]
+    serializer_class = TodoItemSerializer
+    def get_queryset(self):
+        return TodoItem.objects.filter(todo_list__owner=self.request.user,
+                                       todo_list=self.kwargs['todolist_pk'])
+    
+    def perform_create(self, serializer):
+        todo_list = TodoList.objects.get(pk=self.kwargs['todolist_pk'],
+                                         owner=self.request.user)
+        serializer.save(todo_list=todo_list)
