@@ -1,0 +1,99 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo API</title>
+    <style>
+        /*Navbar styles*/
+        nav{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding: 15px 30px;
+            background-color:#333;
+        }
+         .nav-left a {
+            color: white;
+            text-decoration: none;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        .nav-center input {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: none;
+            width: 300px;
+            outline: none;
+        }
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .nav-right a {
+            color: white;
+            text-decoration: none;
+        }
+        .nav-right span {
+            color: white;
+            font-weight: bold;
+        }
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+        }
+        .avatar-placeholder {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #e74c3c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+
+    </head>
+<body>
+    <nav>
+        <div class = "nav-left">
+        <a href="/" style = "font-size:20px ;font-weight:bold;">Todo APP</a>
+        </div>
+        <div class = "nav-center">
+            {% if request.session.access_token %}
+                <input type="text" id="search-input" placeholder="Search todos...">
+            {% endif %}
+        </div>
+       <div class = "nav-right">
+         {% if request.session.access_token%}
+           {% if request.session.profile_picture %}
+                    <img src="{{ request.session.profile_picture }}" class="avatar">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        {{ request.session.username|first|upper }}
+                    </div>
+                {% endif %}
+                
+                <span>{{ request.session.username }}</span>
+                <a href="{% url 'todos:profile' %}">Profile</a>
+                <a href="{% url 'todos:logout' %}">Logout</a>
+        {% else %}
+                <a href="{% url 'todos:login' %}">Login</a>
+                <a href="{% url 'todos:register' %}">Register</a>
+        {% endif %}
+       </div>
+    </nav>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+    </body>
+</html>

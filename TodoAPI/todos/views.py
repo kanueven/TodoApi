@@ -1,3 +1,6 @@
+from django.shortcuts import render, redirect
+import requests
+
 from .models import User, TodoList, TodoItem
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +13,57 @@ from .permissions import IsOwner
 from datetime import datetime
 
 # Create your views here.
+API_BASE_URL = 'http://localhost:8000/api/'
+def login_view(request):
+    if request.method == 'GET':
+        return render(request,'todos/login.html')
+    if request.method =='POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        response = requests.post(f'{API_BASE_URL}auth/login/',
+                                 json={'email': email, 'password': password})
+        
+        if response.status_code == 200:
+            data = response.json()
+            request.session['access_token'] = data['access']
+            request.session['refresh_token'] = data['refresh']
+            request.session['username']=email.split('@')[0]
+            return redirect('todos:lists')
+        return render(request,'todos/login.html', 
+                      {'error': 'Invalid credentials',
+                       'email': email
+                       })
+    
+def register_view(request):
+    if request.method == 'GET':
+        return render(request, 'todos/register.html')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        response = requests.post(f'{API_BASE_URL}auth/register/', json={
+            'username': username,
+            'email': email,
+            'password': password
+        })
+        
+        if response.status_code == 201:
+            return redirect(request, 'todos:login')
+        
+        errors = response.json()
+        error_message = next(iter(errors.values()))[0]
+        
+        return render(request, 'todos/register.html', {
+            'error': error_message,
+            'username': username,
+            'email': email,
+        })
+def logout_view(request):
+    request.session.flush()
+    return redirect('todos:login')
 class RegisterView(APIView):
     def post(self,request):
         serializer = RegisterSerializer(data = request.data)
